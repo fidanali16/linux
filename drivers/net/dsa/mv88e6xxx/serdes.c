@@ -17,11 +17,18 @@
 #include "port.h"
 #include "serdes.h"
 
+static int mv88e63xx_serdes_read(struct mv88e6xxx_chip *chip, int lane, int reg,
+				 u16 *val)
+{
+	return mv88e6xxx_phy_page_read(chip, lane,
+				       MV88E6352_SERDES_PAGE_FIBER,
+				       reg, val);
+}
+
 static int mv88e6352_serdes_read(struct mv88e6xxx_chip *chip, int reg,
 				 u16 *val)
 {
-	return mv88e6xxx_phy_page_read(chip, MV88E6352_ADDR_SERDES,
-				       MV88E6352_SERDES_PAGE_FIBER,
+	return mv88e63xx_serdes_read(chip, MV88E6352_ADDR_SERDES,
 				       reg, val);
 }
 

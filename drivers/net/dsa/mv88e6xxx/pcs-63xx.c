@@ -298,9 +298,9 @@ static int marvell_c22_pcs_setup_irq(struct marvell_c22_pcs *mpcs,
 	return 0;
 }
 
-/* mv88e6352 specifics */
+/* mv88e6xx specifics */
 
-static bool mv88e6352_pcs_link_check(struct marvell_c22_pcs *mpcs)
+static bool mv88e63xx_pcs_link_check(struct marvell_c22_pcs *mpcs)
 {
 	struct mv88e6xxx_port *port = mpcs->port;
 	struct mv88e6xxx_chip *chip = port->chip;
@@ -318,7 +318,7 @@ static bool mv88e6352_pcs_link_check(struct marvell_c22_pcs *mpcs)
 	       cmode == MV88E6XXX_PORT_STS_CMODE_SGMII;
 }
 
-static int mv88e6352_pcs_init(struct mv88e6xxx_chip *chip, int port)
+static int mv88e63xx_pcs_init(struct mv88e6xxx_chip *chip, int port, int lane)
 {
 	struct marvell_c22_pcs *mpcs;
 	struct mii_bus *bus;
@@ -326,24 +326,18 @@ static int mv88e6352_pcs_init(struct mv88e6xxx_chip *chip, int port)
 	unsigned int irq;
 	int err;
 
-	mv88e6xxx_reg_lock(chip);
-	err = mv88e6352_g2_scratch_port_has_serdes(chip, port);
-	mv88e6xxx_reg_unlock(chip);
-	if (err <= 0)
-		return err;
-
 	irq = mv88e6xxx_serdes_irq_mapping(chip, port);
 	bus = mv88e6xxx_default_mdio_bus(chip);
 	dev = chip->dev;
 
-	mpcs = marvell_c22_pcs_alloc(dev, bus, MV88E6352_ADDR_SERDES);
+	mpcs = marvell_c22_pcs_alloc(dev, bus, lane);
 	if (!mpcs)
 		return -ENOMEM;
 
 	snprintf(mpcs->name, sizeof(mpcs->name),
 		 "mv88e6xxx-%s-serdes-%d", dev_name(dev), port);
 
-	mpcs->link_check = mv88e6352_pcs_link_check;
+	mpcs->link_check = mv88e63xx_pcs_link_check;
 	mpcs->port = &chip->ports[port];
 
 	err = marvell_c22_pcs_setup_irq(mpcs, irq);
@@ -357,7 +351,21 @@ static int mv88e6352_pcs_init(struct mv88e6xxx_chip *chip, int port)
 	return 0;
 }
 
-static void mv88e6352_pcs_teardown(struct mv88e6xxx_chip *chip, int port)
+
+static int mv88e6352_pcs_init(struct mv88e6xxx_chip *chip, int port)
+{
+	int err;
+
+	mv88e6xxx_reg_lock(chip);
+	err = mv88e6352_g2_scratch_port_has_serdes(chip, port);
+	mv88e6xxx_reg_unlock(chip);
+	if (err <= 0)
+		return err;
+
+	return mv88e63xx_pcs_init(chip, port, MV88E6352_ADDR_SERDES);
+}
+
+static void mv88e63xx_pcs_teardown(struct mv88e6xxx_chip *chip, int port)
 {
 	struct marvell_c22_pcs *mpcs;
 	struct phylink_pcs *pcs;
@@ -376,7 +384,7 @@ static void mv88e6352_pcs_teardown(struct mv88e6xxx_chip *chip, int port)
 	chip->ports[port].pcs_private = NULL;
 }
 
-static struct phylink_pcs *mv88e6352_pcs_select(struct mv88e6xxx_chip *chip,
+static struct phylink_pcs *mv88e63xx_pcs_select(struct mv88e6xxx_chip *chip,
 						int port,
 						phy_interface_t interface)
 {
@@ -385,6 +393,6 @@ static struct phylink_pcs *mv88e6352_pcs_select(struct mv88e6xxx_chip *chip,
 
 const struct mv88e6xxx_pcs_ops mv88e6352_pcs_ops = {
 	.pcs_init = mv88e6352_pcs_init,
-	.pcs_teardown = mv88e6352_pcs_teardown,
-	.pcs_select = mv88e6352_pcs_select,
+	.pcs_teardown = mv88e63xx_pcs_teardown,
+	.pcs_select = mv88e63xx_pcs_select,
 };
