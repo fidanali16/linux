@@ -348,3 +348,31 @@ int mv88e6352_g2_scratch_port_has_serdes(struct mv88e6xxx_chip *chip, int port)
 
 	return port == p;
 }
+
+/**
+ * mv88e6321_g2_scratch_port_has_serdes - indicate if a port can have a serdes
+ * @chip: chip private data
+ * @port: port number to check for serdes
+ *
+ * Indicates whether the port may have a serdes attached according to the
+ * pin strapping. Returns negative error number if the port is not
+ * configured to have a serdes, and 1 if the port is configured to have a
+ * serdes attached.
+ */
+int mv88e6321_g2_scratch_port_has_serdes(struct mv88e6xxx_chip *chip, int port)
+{
+	u8 config3;
+	int err;
+
+	err = mv88e6xxx_g2_scratch_read(chip, MV88E6352_G2_SCRATCH_CONFIG_DATA3,
+					&config3);
+
+	if (err)
+		return err;
+
+	if ((port == 1 && (config3 & MV88E6321_G2_SCRATCH_CONFIG_DATA3_P1_S_SEL)) ||
+		(port == 0 && (config3 & MV88E6321_G2_SCRATCH_CONFIG_DATA3_P0_S_SEL)))
+		return 1;
+
+	return -EINVAL;
+}

@@ -302,6 +302,9 @@
 #define MV88E6352_G2_SCRATCH_CONFIG_DATA3	0x73
 #define MV88E6352_G2_SCRATCH_CONFIG_DATA3_S_SEL		BIT(1)
 
+#define MV88E6321_G2_SCRATCH_CONFIG_DATA3_P1_S_SEL		BIT(1)
+#define MV88E6321_G2_SCRATCH_CONFIG_DATA3_P0_S_SEL		BIT(0)
+
 #define MV88E6352_G2_SCRATCH_GPIO_PCTL_GPIO	0
 #define MV88E6352_G2_SCRATCH_GPIO_PCTL_TRIG	1
 #define MV88E6352_G2_SCRATCH_GPIO_PCTL_EVREQ	2
@@ -383,6 +386,7 @@ int mv88e6390_g2_scratch_gpio_set_smi(struct mv88e6xxx_chip *chip,
 int mv88e6393x_g2_scratch_gpio_set_smi(struct mv88e6xxx_chip *chip,
 				       bool external);
 int mv88e6352_g2_scratch_port_has_serdes(struct mv88e6xxx_chip *chip, int port);
+int mv88e6321_g2_scratch_port_has_serdes(struct mv88e6xxx_chip *chip, int port);
 int mv88e6xxx_g2_atu_stats_set(struct mv88e6xxx_chip *chip, u16 kind, u16 bin);
 int mv88e6xxx_g2_atu_stats_get(struct mv88e6xxx_chip *chip, u16 *stats);
 
