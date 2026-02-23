@@ -365,6 +365,23 @@ static int mv88e6352_pcs_init(struct mv88e6xxx_chip *chip, int port)
 	return mv88e63xx_pcs_init(chip, port, MV88E6352_ADDR_SERDES);
 }
 
+static int mv88e6321_pcs_init(struct mv88e6xxx_chip *chip, int port)
+{
+	int err, lane;
+
+	mv88e6xxx_reg_lock(chip);
+	err = mv88e6321_g2_scratch_port_has_serdes(chip, port);
+	mv88e6xxx_reg_unlock(chip);
+	if (err <= 0)
+		return err;
+
+	lane = mv88e6xxx_serdes_get_lane(chip, port);
+	if (lane < 0)
+		return 0;
+
+	return mv88e63xx_pcs_init(chip, port, lane);
+}
+
 static void mv88e63xx_pcs_teardown(struct mv88e6xxx_chip *chip, int port)
 {
 	struct marvell_c22_pcs *mpcs;
@@ -393,6 +410,12 @@ static struct phylink_pcs *mv88e63xx_pcs_select(struct mv88e6xxx_chip *chip,
 
 const struct mv88e6xxx_pcs_ops mv88e6352_pcs_ops = {
 	.pcs_init = mv88e6352_pcs_init,
+	.pcs_teardown = mv88e63xx_pcs_teardown,
+	.pcs_select = mv88e63xx_pcs_select,
+};
+
+const struct mv88e6xxx_pcs_ops mv88e6321_pcs_ops = {
+	.pcs_init = mv88e6321_pcs_init,
 	.pcs_teardown = mv88e63xx_pcs_teardown,
 	.pcs_select = mv88e63xx_pcs_select,
 };
